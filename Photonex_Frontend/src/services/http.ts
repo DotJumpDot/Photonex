@@ -1,39 +1,9 @@
-import axios from "axios";
+// HTTP client is provided by the axios plugin
+// Access via: const { $http } = useNuxtApp()
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3001";
+import type { AxiosInstance } from "axios";
 
-const http = axios.create({
-  baseURL: `${API_BASE_URL}/api`,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Request interceptor - Add Authorization header
-http.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers["Authorization"] = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor - Handle errors
-http.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default http;
+export const useHttp = (): AxiosInstance => {
+  const nuxtApp = useNuxtApp();
+  return nuxtApp.$http as AxiosInstance;
+};

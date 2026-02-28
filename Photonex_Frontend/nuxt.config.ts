@@ -6,8 +6,7 @@ export default defineNuxtConfig({
   modules: ["@pinia/nuxt", "@nuxtjs/i18n"],
 
   i18n: {
-    lazy: true,
-    langDir: "Language",
+    langDir: "../src/Language",
     locales: [
       { code: "en", file: "en.json", name: "English" },
       { code: "th", file: "th.json", name: "Thai" },
@@ -18,7 +17,8 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBaseUrl: process.env.API_BASE_URL || "http://localhost:3001",
+      apiBaseUrl: process.env.API_BASE_URL || "http://localhost:3002",
+      apiKey: process.env.API_KEY || "",
     },
   },
 

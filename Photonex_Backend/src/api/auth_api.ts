@@ -14,18 +14,22 @@ router.post(
       .withMessage("Password must be at least 6 characters long"),
   ],
   async (req: Request, res: Response): Promise<void> => {
+    console.log("[Auth API] Register endpoint called");
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log("[Auth API] Validation errors:", errors.array());
       res.status(400).json({ errors: errors.array() });
       return;
     }
 
     try {
       const { email, password } = req.body;
+      console.log(`[Auth API] Attempting to register user: ${email}`);
       const { user, token } = await authService.register(email, password);
+      console.log("[Auth API] User registered successfully:", user.id);
       res.status(201).json({ user, token });
     } catch (error: any) {
-      console.error("Register error:", error);
+      console.error("[Auth API] Register error:", error);
       res.status(400).json({ error: error.message || "Registration failed" });
     }
   }

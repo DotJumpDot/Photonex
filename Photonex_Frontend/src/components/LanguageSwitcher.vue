@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 
+type LocaleCode = "en" | "th";
+
 const { locale, setLocale } = useI18n();
 
-const availableLocales = [
+const availableLocales: { code: LocaleCode; name: string }[] = [
   { code: "en", name: "English" },
   { code: "th", name: "ไทย" },
 ];
 
-function switchLanguage(code: string) {
+function switchLanguage(code: LocaleCode) {
   setLocale(code);
 }
 </script>

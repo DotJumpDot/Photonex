@@ -30,12 +30,7 @@
         title="Delete"
         @click="$emit('delete', package.id)"
       >
-        <svg
-          class="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -48,24 +43,17 @@
 
     <!-- Stats -->
     <div class="px-6 py-4">
-      <div
-        v-if="latestStats"
-        class="grid grid-cols-2 gap-4"
-      >
+      <div v-if="latestStats" class="grid grid-cols-2 gap-4">
         <!-- NPM Stats -->
         <template v-if="package.type === 'npm'">
           <div class="text-center">
-            <p class="text-sm text-gray-600">
-              Weekly Downloads
-            </p>
+            <p class="text-sm text-gray-600">Weekly Downloads</p>
             <p class="text-2xl font-bold text-gray-900">
               {{ formatNumber(latestStats.downloads || 0) }}
             </p>
           </div>
           <div class="text-center">
-            <p class="text-sm text-gray-600">
-              Version
-            </p>
+            <p class="text-sm text-gray-600">Version</p>
             <p class="text-2xl font-bold text-gray-900">
               {{ latestStats.version || "N/A" }}
             </p>
@@ -75,17 +63,13 @@
         <!-- VS Code Stats -->
         <template v-else>
           <div class="text-center">
-            <p class="text-sm text-gray-600">
-              Installs
-            </p>
+            <p class="text-sm text-gray-600">Installs</p>
             <p class="text-2xl font-bold text-gray-900">
               {{ formatNumber(latestStats.installs || 0) }}
             </p>
           </div>
           <div class="text-center">
-            <p class="text-sm text-gray-600">
-              Rating
-            </p>
+            <p class="text-sm text-gray-600">Rating</p>
             <p class="text-2xl font-bold text-gray-900">
               {{ latestStats.rating ? latestStats.rating.toFixed(1) : "N/A" }}
             </p>
@@ -93,36 +77,20 @@
         </template>
       </div>
 
-      <div
-        v-else
-        class="text-center py-4"
-      >
-        <p class="text-gray-500">
-          No stats available
-        </p>
+      <div v-else class="text-center py-4">
+        <p class="text-gray-500">No stats available</p>
       </div>
 
       <!-- Last Updated -->
-      <div
-        v-if="latestStats"
-        class="mt-4 text-center"
-      >
-        <p class="text-xs text-gray-500">
-          Last updated: {{ formatDate(latestStats.recorded_at) }}
-        </p>
+      <div v-if="latestStats" class="mt-4 text-center">
+        <p class="text-xs text-gray-500">Last updated: {{ formatDate(latestStats.recorded_at) }}</p>
       </div>
     </div>
 
     <!-- Chart -->
-    <div
-      v-if="chartData.labels.length > 1"
-      class="px-6 pb-4"
-    >
+    <div v-if="chartData.labels.length > 1" class="px-6 pb-4">
       <div class="h-32">
-        <Line
-          :data="chartData"
-          :options="chartOptions"
-        />
+        <Line :data="chartData" :options="chartOptions" />
       </div>
     </div>
 
@@ -152,7 +120,7 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import type { PackageWithStats } from "../services/package.service";
+import type { PackageWithStats } from "../Types";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
