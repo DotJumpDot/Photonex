@@ -18,8 +18,8 @@ function switchLanguage(code: string) {
     <button
       v-for="lang in availableLocales"
       :key="lang.code"
-      @click="switchLanguage(lang.code)"
       :class="{ active: locale === lang.code }"
+      @click="switchLanguage(lang.code)"
     >
       {{ lang.name }}
     </button>

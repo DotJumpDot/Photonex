@@ -31,7 +31,7 @@ export const useAuthStore = defineStore("auth", () => {
     try {
       const { user: userData } = await authService.getMe();
       user.value = userData;
-    } catch (err) {
+    } catch (_err) {
       error.value = "Failed to fetch user";
       logout();
     } finally {

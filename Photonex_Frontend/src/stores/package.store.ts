@@ -24,7 +24,7 @@ export const usePackageStore = defineStore("package", () => {
     try {
       const { packages: data } = await packageService.getPackages();
       packages.value = data;
-    } catch (err) {
+    } catch (_err) {
       error.value = "Failed to fetch packages";
     } finally {
       loading.value = false;

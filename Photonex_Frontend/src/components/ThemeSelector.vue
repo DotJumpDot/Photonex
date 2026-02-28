@@ -14,8 +14,8 @@ const themes = [
     <button
       v-for="theme in themes"
       :key="theme.value"
-      @click="themeStore.setTheme(theme.value)"
       :class="{ active: themeStore.currentTheme === theme.value }"
+      @click="themeStore.setTheme(theme.value)"
     >
       {{ theme.label }}
     </button>
