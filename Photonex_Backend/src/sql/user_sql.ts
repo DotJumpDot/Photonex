@@ -1,0 +1,42 @@
+import { supabase } from "../db.js";
+import type { User, CreateUserInput } from "../types/user_type.js";
+
+export async function findUserByProviderId(
+  provider: string,
+  providerId: string
+): Promise<User | null> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("provider", provider)
+    .eq("provider_id", providerId)
+    .single();
+
+  if (error) return null;
+  return data as User;
+}
+
+export async function findUserById(id: string): Promise<User | null> {
+  const { data, error } = await supabase.from("users").select("*").eq("id", id).single();
+
+  if (error) return null;
+  return data as User;
+}
+
+export async function createUser(input: CreateUserInput): Promise<User> {
+  const { data, error } = await supabase
+    .from("users")
+    .insert({
+      email: input.email,
+      provider: input.provider,
+      provider_id: input.provider_id,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create user: ${error.message}`);
+  }
+
+  return data as User;
+}
