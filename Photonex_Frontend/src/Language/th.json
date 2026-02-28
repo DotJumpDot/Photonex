@@ -1,0 +1,15 @@
+{
+  "welcome": "ยินดีต้อนรับสู่ Photonex",
+  "login": "เข้าสู่ระบบ",
+  "register": "ลงทะเบียน",
+  "dashboard": "แดชบอร์ด",
+  "settings": "การตั้งค่า",
+  "theme": "ธีม",
+  "language": "ภาษา",
+  "logout": "ออกจากระบบ",
+  "loading": "กำลังโหลด...",
+  "packages": "แพ็คเกจ",
+  "downloads": "ยอดดาวน์โหลด",
+  "rating": "คะแนน",
+  "version": "เวอร์ชัน"
+}

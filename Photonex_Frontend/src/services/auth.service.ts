@@ -2,8 +2,18 @@ import http from "./http";
 import type { User, AuthCallbackInput } from "../Types";
 
 export const authService = {
-  async callback(input: AuthCallbackInput): Promise<{ user: User }> {
+  async callback(input: AuthCallbackInput): Promise<{ user: User; token: string }> {
     const response = await http.post("/auth/callback", input);
+    return response.data;
+  },
+
+  async login(email: string, password: string): Promise<{ user: User; token: string }> {
+    const response = await http.post("/auth/login", { email, password });
+    return response.data;
+  },
+
+  async register(email: string, password: string): Promise<{ user: User; token: string }> {
+    const response = await http.post("/auth/register", { email, password });
     return response.data;
   },
 
@@ -12,16 +22,16 @@ export const authService = {
     return response.data;
   },
 
-  setUserId(userId: string): void {
-    localStorage.setItem("user_id", userId);
+  setToken(token: string): void {
+    localStorage.setItem("token", token);
   },
 
-  getUserId(): string | null {
-    return localStorage.getItem("user_id");
+  getToken(): string | null {
+    return localStorage.getItem("token");
   },
 
-  clearUserId(): void {
-    localStorage.removeItem("user_id");
+  clearToken(): void {
+    localStorage.removeItem("token");
   },
 };
 

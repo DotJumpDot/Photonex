@@ -1,26 +1,109 @@
 <template>
-  <div class="min-h-screen bg-gray-50 flex items-center justify-center">
-    <div class="max-w-md w-full bg-white shadow-lg rounded-lg p-8">
-      <div class="text-center mb-8">
+  <div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 bg-white shadow-lg rounded-lg p-8">
+      <div class="text-center">
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Photonex</h1>
-        <p class="text-gray-600">Monitor your packages and extensions</p>
+        <p class="text-gray-600">{{ $t("welcome") }}</p>
+      </div>
+
+      <!-- Language Switcher -->
+      <div class="flex justify-end mb-4">
+        <LanguageSwitcher />
+      </div>
+
+      <!-- Mode Toggle -->
+      <div class="flex border-b border-gray-200 mb-6">
+        <button
+          @click="mode = 'login'"
+          :class="[
+            'flex-1 py-2 text-center font-medium',
+            mode === 'login'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-700',
+          ]"
+        >
+          {{ $t("login") }}
+        </button>
+        <button
+          @click="mode = 'register'"
+          :class="[
+            'flex-1 py-2 text-center font-medium',
+            mode === 'register'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-700',
+          ]"
+        >
+          {{ $t("register") }}
+        </button>
       </div>
 
       <!-- Error Message -->
       <div
         v-if="authStore.error"
-        class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6"
+        class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6 text-sm"
       >
         {{ authStore.error }}
       </div>
 
-      <!-- Login Buttons -->
-      <div class="space-y-4">
+      <!-- Email/Password Form -->
+      <form @submit.prevent="handleSubmit" class="space-y-6">
+        <div>
+          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+          <div class="mt-1">
+            <input
+              id="email"
+              v-model="email"
+              name="email"
+              type="email"
+              required
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+          <div class="mt-1">
+            <input
+              id="password"
+              v-model="password"
+              name="password"
+              type="password"
+              required
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+        </div>
+
+        <div>
+          <button
+            type="submit"
+            :disabled="authStore.loading"
+            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span v-if="authStore.loading">{{ $t("loading") }}</span>
+            <span v-else>{{ mode === "login" ? $t("login") : $t("register") }}</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="relative">
+        <div class="absolute inset-0 flex items-center">
+          <div class="w-full border-t border-gray-300"></div>
+        </div>
+        <div class="relative flex justify-center text-sm">
+          <span class="px-2 bg-white text-gray-500">Or continue with</span>
+        </div>
+      </div>
+
+      <!-- OAuth Buttons -->
+      <div class="space-y-3">
         <button
           @click="loginWithGoogle"
           :disabled="authStore.loading"
-          class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          class="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
+          <!-- Google SVG -->
           <svg class="w-5 h-5" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
@@ -39,14 +122,15 @@
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          Continue with Google
+          Google
         </button>
 
         <button
           @click="loginWithGithub"
           :disabled="authStore.loading"
-          class="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          class="w-full flex items-center justify-center gap-3 px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
         >
+          <!-- GitHub SVG -->
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path
               fillRule="evenodd"
@@ -54,29 +138,37 @@
               clipRule="evenodd"
             />
           </svg>
-          Continue with GitHub
+          GitHub
         </button>
       </div>
 
       <div class="mt-6 text-center">
-        <NuxtLink to="/" class="text-sm text-blue-600 hover:text-blue-800"> Back to Home </NuxtLink>
+        <NuxtLink to="/" class="text-sm text-blue-600 hover:text-blue-800">
+          Back to Home
+        </NuxtLink>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { createClient } from "@supabase/supabase-js";
 import { useAuthStore } from "../stores/auth.store";
+import LanguageSwitcher from "../components/LanguageSwitcher.vue";
 
 const router = useRouter();
 const authStore = useAuthStore();
 
+// Form State
+const mode = ref<"login" | "register">("login");
+const email = ref("");
+const password = ref("");
+
 // Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL || "";
-const supabaseKey = process.env.SUPABASE_ANON_KEY || "";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 onMounted(() => {
@@ -91,6 +183,19 @@ onMounted(() => {
     handleAuthCallback();
   }
 });
+
+async function handleSubmit() {
+  try {
+    if (mode.value === "login") {
+      await authStore.login(email.value, password.value);
+    } else {
+      await authStore.register(email.value, password.value);
+    }
+    router.push("/");
+  } catch (error) {
+    // Error is handled in store
+  }
+}
 
 async function loginWithGoogle() {
   try {

@@ -14,14 +14,16 @@ export const useAuthStore = defineStore("auth", () => {
   const userId = computed(() => user.value?.id || null);
 
   // Actions
-  async function setUser(userData: User) {
+  async function setUser(userData: User, token?: string) {
     user.value = userData;
-    authService.setUserId(userData.id);
+    if (token) {
+      authService.setToken(token);
+    }
   }
 
   async function fetchUser() {
-    const storedUserId = authService.getUserId();
-    if (!storedUserId) return;
+    const token = authService.getToken();
+    if (!token) return;
 
     loading.value = true;
     error.value = null;
@@ -46,13 +48,13 @@ export const useAuthStore = defineStore("auth", () => {
     error.value = null;
 
     try {
-      const { user: userData } = await authService.callback({
+      const { user: userData, token } = await authService.callback({
         email,
         provider,
         provider_id: providerId,
       });
 
-      await setUser(userData);
+      await setUser(userData, token);
       return userData;
     } catch (err) {
       error.value = "Authentication failed";
@@ -62,9 +64,39 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  async function login(email: string, password: string) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const { user: userData, token } = await authService.login(email, password);
+      await setUser(userData, token);
+      return userData;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || "Login failed";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function register(email: string, password: string) {
+    loading.value = true;
+    error.value = null;
+    try {
+      const { user: userData, token } = await authService.register(email, password);
+      await setUser(userData, token);
+      return userData;
+    } catch (err: any) {
+      error.value = err.response?.data?.error || "Registration failed";
+      throw err;
+    } finally {
+      loading.value = false;
+    }
+  }
+
   function logout() {
     user.value = null;
-    authService.clearUserId();
+    authService.clearToken();
   }
 
   return {
@@ -76,6 +108,8 @@ export const useAuthStore = defineStore("auth", () => {
     setUser,
     fetchUser,
     handleOAuthCallback,
+    login,
+    register,
     logout,
   };
 });

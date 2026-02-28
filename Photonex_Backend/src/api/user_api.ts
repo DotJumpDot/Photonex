@@ -1,20 +1,26 @@
 import { Router, type Request, type Response } from "express";
 import * as userService from "../service/user_service.js";
 import type { CreateUserInput } from "../types/user_type.js";
+import { authenticateToken } from "../middleware/auth_middleware.js";
+import { AuthRequest } from "../types/auth_type.js";
 
 const router = Router();
 
+import * as authService from "../service/auth_service.js";
+
 // POST /api/auth/callback - Handle OAuth callback
-router.post("/callback", async (req: Request, res: Response) => {
+router.post("/callback", async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, provider, provider_id } = req.body as CreateUserInput;
 
     if (!email || !provider || !provider_id) {
-      return res.status(400).json({ error: "Missing required fields" });
+      res.status(400).json({ error: "Missing required fields" });
+      return;
     }
 
     if (provider !== "google" && provider !== "github") {
-      return res.status(400).json({ error: "Invalid provider" });
+      res.status(400).json({ error: "Invalid provider" });
+      return;
     }
 
     const user = await userService.getOrCreateUser({
@@ -23,32 +29,36 @@ router.post("/callback", async (req: Request, res: Response) => {
       provider_id,
     });
 
-    return res.json({ user });
+    const token = authService.generateToken(user);
+
+    res.json({ user, token });
   } catch (error) {
     console.error("Auth callback error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // GET /api/auth/me - Get current user
-router.get("/me", async (req: Request, res: Response) => {
+router.get("/me", authenticateToken, async (req: Request, res: Response): Promise<void> => {
   try {
-    const userId = req.headers["user-id"] as string;
+    const userId = (req as AuthRequest).user?.userId;
 
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
 
     const user = await userService.getUserById(userId);
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      res.status(404).json({ error: "User not found" });
+      return;
     }
 
-    return res.json({ user });
+    res.json({ user });
   } catch (error) {
     console.error("Get user error:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

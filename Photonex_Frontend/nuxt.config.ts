@@ -3,7 +3,18 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
 
-  modules: ["@pinia/nuxt"],
+  modules: ["@pinia/nuxt", "@nuxtjs/i18n"],
+
+  i18n: {
+    lazy: true,
+    langDir: "Language",
+    locales: [
+      { code: "en", file: "en.json", name: "English" },
+      { code: "th", file: "th.json", name: "Thai" },
+    ],
+    defaultLocale: "en",
+    strategy: "no_prefix",
+  },
 
   runtimeConfig: {
     public: {

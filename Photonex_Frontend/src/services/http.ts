@@ -9,12 +9,12 @@ const http = axios.create({
   },
 });
 
-// Request interceptor - Add user-id header
+// Request interceptor - Add Authorization header
 http.interceptors.request.use(
   (config) => {
-    const userId = localStorage.getItem("user_id");
-    if (userId) {
-      config.headers["user-id"] = userId;
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
     }
     return config;
   },
@@ -28,7 +28,8 @@ http.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("user_id");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       window.location.href = "/login";
     }
     return Promise.reject(error);

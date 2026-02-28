@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import userApi from "./api/user_api.js";
+import authApi from "./api/auth_api.js";
 import packageApi from "./api/package_api.js";
 
 dotenv.config();
@@ -21,6 +22,7 @@ app.get("/health", (_req: Request, res: Response) => {
 
 // API routes
 app.use("/api/auth", userApi);
+app.use("/api/auth", authApi);
 app.use("/api/packages", packageApi);
 
 // Error handler

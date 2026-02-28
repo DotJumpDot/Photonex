@@ -1,0 +1,15 @@
+{
+  "welcome": "Welcome to Photonex",
+  "login": "Login",
+  "register": "Register",
+  "dashboard": "Dashboard",
+  "settings": "Settings",
+  "theme": "Theme",
+  "language": "Language",
+  "logout": "Logout",
+  "loading": "Loading...",
+  "packages": "Packages",
+  "downloads": "Downloads",
+  "rating": "Rating",
+  "version": "Version"
+}

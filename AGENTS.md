@@ -4,6 +4,11 @@
 
 Photonex is a monitoring dashboard for NPM packages and VS Code Marketplace extensions. It tracks downloads, ratings, versions, and historical trends.
 
+## Development Rules
+
+- **Package Manager**: ALWAYS use **Bun** (`bun install`, `bun add`, `bun run`). DO NOT use `npm` or `yarn`.
+- **Runtime**: Prefer Bun runtime where applicable.
+
 ## Tech Stack
 
 - **Frontend**: Nuxt.js 3 + TypeScript + Pinia
