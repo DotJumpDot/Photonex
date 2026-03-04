@@ -11,13 +11,17 @@ export const authService = {
     return response.data;
   },
 
-  async login(email: string, password: string): Promise<{ user: User; token: string }> {
-    const response = await getHttp().post("/auth/login", { email, password });
+  async login(loginInput: string, password: string): Promise<{ user: User; token: string }> {
+    const response = await getHttp().post("/auth/login", { loginInput, password });
     return response.data;
   },
 
-  async register(email: string, password: string): Promise<{ user: User; token: string }> {
-    const response = await getHttp().post("/auth/register", { email, password });
+  async register(
+    username: string,
+    email: string | null,
+    password: string
+  ): Promise<{ user: User; token: string }> {
+    const response = await getHttp().post("/auth/register", { username, email, password });
     return response.data;
   },
 

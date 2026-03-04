@@ -2,13 +2,15 @@ import { Router, type Request, type Response } from "express";
 import { body, param, validationResult } from "express-validator";
 import * as packageService from "../service/package_service.js";
 import type { CreatePackageInput } from "../types/package_type.js";
+import { authenticateToken } from "../middleware/auth_middleware.js";
+import { AuthRequest } from "../types/auth_type.js";
 
 const router = Router();
 
-// GET /api/packages - Get all packages for user
-router.get("/", async (req: Request, res: Response) => {
+// GET /api/packages - Get all packages for user (protected)
+router.get("/", authenticateToken, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers["user-id"] as string;
+    const userId = (req as AuthRequest).user?.userId;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -22,9 +24,10 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/packages - Add a new package
+// POST /api/packages - Add a new package (protected)
 router.post(
   "/",
+  authenticateToken,
   [
     body("name").notEmpty().withMessage("Name is required"),
     body("type").isIn(["npm", "vscode"]).withMessage("Type must be npm or vscode"),
@@ -37,7 +40,7 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const userId = req.headers["user-id"] as string;
+      const userId = (req as AuthRequest).user?.userId;
 
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -64,9 +67,10 @@ router.post(
   }
 );
 
-// DELETE /api/packages/:id - Delete a package
+// DELETE /api/packages/:id - Delete a package (protected)
 router.delete(
   "/:id",
+  authenticateToken,
   [param("id").isUUID().withMessage("Invalid package ID")],
   async (req: Request, res: Response) => {
     try {
@@ -75,7 +79,7 @@ router.delete(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const userId = req.headers["user-id"] as string;
+      const userId = (req as AuthRequest).user?.userId;
 
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -92,9 +96,10 @@ router.delete(
   }
 );
 
-// POST /api/packages/:id/refresh - Refresh package stats
+// POST /api/packages/:id/refresh - Refresh package stats (protected)
 router.post(
   "/:id/refresh",
+  authenticateToken,
   [param("id").isUUID().withMessage("Invalid package ID")],
   async (req: Request, res: Response) => {
     try {
@@ -103,7 +108,7 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
-      const userId = req.headers["user-id"] as string;
+      const userId = (req as AuthRequest).user?.userId;
 
       if (!userId) {
         return res.status(401).json({ error: "Unauthorized" });
@@ -133,10 +138,10 @@ router.post(
   }
 );
 
-// POST /api/packages/refresh-all - Refresh all package stats
-router.post("/refresh-all", async (req: Request, res: Response) => {
+// POST /api/packages/refresh-all - Refresh all package stats (protected)
+router.post("/refresh-all", authenticateToken, async (req: Request, res: Response) => {
   try {
-    const userId = req.headers["user-id"] as string;
+    const userId = (req as AuthRequest).user?.userId;
 
     if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });

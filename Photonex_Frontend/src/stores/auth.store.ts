@@ -64,11 +64,11 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  async function login(email: string, password: string) {
+  async function login(loginInput: string, password: string) {
     loading.value = true;
     error.value = null;
     try {
-      const { user: userData, token } = await authService.login(email, password);
+      const { user: userData, token } = await authService.login(loginInput, password);
       await setUser(userData, token);
       return userData;
     } catch (err: any) {
@@ -79,11 +79,11 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  async function register(email: string, password: string) {
+  async function register(username: string, email: string | null, password: string) {
     loading.value = true;
     error.value = null;
     try {
-      const { user: userData, token } = await authService.register(email, password);
+      const { user: userData, token } = await authService.register(username, email, password);
       await setUser(userData, token);
       return userData;
     } catch (err: any) {

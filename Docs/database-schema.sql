@@ -4,12 +4,24 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- ============================================
+-- CLEAN SETUP: Drop existing tables and recreate
+-- WARNING: This will delete all existing data!
+-- ============================================
+
+-- Drop dependent tables first (CASCADE automatically drops policies)
+DROP TABLE IF EXISTS stats CASCADE;
+DROP TABLE IF EXISTS packages CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
 -- Users table
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  email VARCHAR(255) NOT NULL UNIQUE,
-  provider VARCHAR(50) NOT NULL CHECK (provider IN ('google', 'github')),
-  provider_id VARCHAR(255) NOT NULL,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(255) UNIQUE,
+  provider VARCHAR(50) CHECK (provider IS NULL OR provider IN ('google', 'github', 'email')),
+  provider_id VARCHAR(255),
+  password_hash VARCHAR(255),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   UNIQUE(provider, provider_id)
 );

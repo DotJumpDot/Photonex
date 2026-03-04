@@ -47,17 +47,41 @@
         {{ authStore?.error }}
       </div>
 
-      <!-- Email/Password Form -->
+      <!-- Login/Register Form -->
       <form class="space-y-6" @submit.prevent="handleSubmit">
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+        <!-- Username field - only for registration -->
+        <div v-if="mode === 'register'">
+          <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
           <div class="mt-1">
             <input
-              id="email"
-              v-model="email"
-              name="email"
-              type="email"
+              id="username"
+              v-model="username"
+              name="username"
+              type="text"
               required
+              minlength="3"
+              maxlength="50"
+              pattern="^[a-zA-Z0-9_]+$"
+              title="Username can only contain letters, numbers, and underscores"
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+          </div>
+          <p class="mt-1 text-xs text-gray-500">
+            3-50 characters, letters, numbers, and underscores only
+          </p>
+        </div>
+
+        <div>
+          <label for="loginInput" class="block text-sm font-medium text-gray-700">
+            {{ mode === "login" ? "Username or Email" : "Email (optional)" }}
+          </label>
+          <div class="mt-1">
+            <input
+              id="loginInput"
+              v-model="loginInput"
+              name="loginInput"
+              :type="mode === 'login' ? 'text' : 'email'"
+              :required="mode === 'login'"
               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             />
           </div>
@@ -72,9 +96,11 @@
               name="password"
               type="password"
               required
+              minlength="4"
               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
             />
           </div>
+          <p class="mt-1 text-xs text-gray-500">Minimum 4 characters</p>
         </div>
 
         <div>
@@ -163,7 +189,8 @@ const authStore = useAuthStore();
 
 // Form State
 const mode = ref<"login" | "register">("login");
-const email = ref("");
+const username = ref("");
+const loginInput = ref("");
 const password = ref("");
 
 // Initialize Supabase client
@@ -187,9 +214,11 @@ onMounted(() => {
 async function handleSubmit() {
   try {
     if (mode.value === "login") {
-      await authStore.login(email.value, password.value);
+      await authStore.login(loginInput.value, password.value);
     } else {
-      await authStore.register(email.value, password.value);
+      // For registration: username is required, email is optional
+      const emailValue = loginInput.value || null;
+      await authStore.register(username.value, emailValue, password.value);
     }
     router.push("/");
   } catch (_error) {

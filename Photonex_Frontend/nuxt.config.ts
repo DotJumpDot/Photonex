@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
 
-  modules: ["@pinia/nuxt", "@nuxtjs/i18n"],
+  modules: ["@pinia/nuxt", "@nuxtjs/i18n", "@nuxtjs/tailwindcss"],
 
   i18n: {
     langDir: "../src/Language",
@@ -23,6 +23,8 @@ export default defineNuxtConfig({
   },
 
   srcDir: "src/",
+
+  css: ["~/assets/css/main.css"],
 
   app: {
     head: {

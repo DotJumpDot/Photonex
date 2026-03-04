@@ -1,17 +1,19 @@
 export interface User {
   id: string;
-  email: string;
-  provider: "google" | "github" | "email";
-  provider_id?: string;
-  password_hash?: string;
+  username: string;
+  email: string | null;
+  provider: "google" | "github" | "email" | null;
+  provider_id?: string | null;
+  password_hash?: string | null;
   created_at: string;
 }
 
 export interface CreateUserInput {
-  email: string;
-  provider: "google" | "github" | "email";
-  provider_id?: string;
-  password_hash?: string;
+  username: string;
+  email?: string | null;
+  provider?: "google" | "github" | "email" | null;
+  provider_id?: string | null;
+  password_hash?: string | null;
 }
 
 export interface AuthCallback {

@@ -8,6 +8,14 @@ const router = Router();
 
 import * as authService from "../service/auth_service.js";
 
+// Helper function to generate a unique username from email
+function generateUsername(email: string): string {
+  // Extract part before @ and add random suffix
+  const base = email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '').substring(0, 20);
+  const suffix = Math.random().toString(36).substring(2, 8);
+  return `${base}_${suffix}`;
+}
+
 // POST /api/auth/callback - Handle OAuth callback
 router.post("/callback", async (req: Request, res: Response): Promise<void> => {
   try {
@@ -23,7 +31,10 @@ router.post("/callback", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    const username = generateUsername(email);
+
     const user = await userService.getOrCreateUser({
+      username,
       email,
       provider,
       provider_id,

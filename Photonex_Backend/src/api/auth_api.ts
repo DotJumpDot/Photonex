@@ -8,10 +8,15 @@ const router = Router();
 router.post(
   "/register",
   [
-    body("email").isEmail().withMessage("Invalid email address"),
+    body("username")
+      .isLength({ min: 3, max: 50 })
+      .withMessage("Username must be between 3 and 50 characters")
+      .matches(/^[a-zA-Z0-9_]+$/)
+      .withMessage("Username can only contain letters, numbers, and underscores"),
+    body("email").optional({ nullable: true }).isEmail().withMessage("Invalid email address"),
     body("password")
-      .isLength({ min: 6 })
-      .withMessage("Password must be at least 6 characters long"),
+      .isLength({ min: 4 })
+      .withMessage("Password must be at least 4 characters long"),
   ],
   async (req: Request, res: Response): Promise<void> => {
     console.log("[Auth API] Register endpoint called");
@@ -23,9 +28,9 @@ router.post(
     }
 
     try {
-      const { email, password } = req.body;
-      console.log(`[Auth API] Attempting to register user: ${email}`);
-      const { user, token } = await authService.register(email, password);
+      const { username, email, password } = req.body;
+      console.log(`[Auth API] Attempting to register user: ${username}`);
+      const { user, token } = await authService.register(username, email || null, password);
       console.log("[Auth API] User registered successfully:", user.id);
       res.status(201).json({ user, token });
     } catch (error: any) {
@@ -39,7 +44,7 @@ router.post(
 router.post(
   "/login",
   [
-    body("email").isEmail().withMessage("Invalid email address"),
+    body("loginInput").exists().withMessage("Username or email is required"),
     body("password").exists().withMessage("Password is required"),
   ],
   async (req: Request, res: Response): Promise<void> => {
@@ -50,8 +55,8 @@ router.post(
     }
 
     try {
-      const { email, password } = req.body;
-      const { user, token } = await authService.login(email, password);
+      const { loginInput, password } = req.body;
+      const { user, token } = await authService.login(loginInput, password);
       res.json({ user, token });
     } catch (error: any) {
       console.error("Login error:", error);

@@ -23,12 +23,19 @@ export async function findUserById(id: string): Promise<User | null> {
   return data as User;
 }
 
-export async function findUserByEmail(email: string): Promise<User | null> {
+export async function findUserByUsername(username: string): Promise<User | null> {
   const { data, error } = await supabase
     .from("users")
     .select("*")
-    .eq("email", email)
+    .eq("username", username)
     .single();
+
+  if (error) return null;
+  return data as User;
+}
+
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const { data, error } = await supabase.from("users").select("*").eq("email", email).single();
 
   if (error) return null;
   return data as User;
@@ -38,6 +45,7 @@ export async function createUser(input: CreateUserInput): Promise<User> {
   const { data, error } = await supabase
     .from("users")
     .insert({
+      username: input.username,
       email: input.email,
       provider: input.provider,
       provider_id: input.provider_id,

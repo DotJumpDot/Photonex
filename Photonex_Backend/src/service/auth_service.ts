@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { createUser, findUserByEmail } from "../sql/user_sql.js";
+import { createUser, findUserByEmail, findUserByUsername } from "../sql/user_sql.js";
 import { User } from "../types/user_type.js";
 import { JwtPayload } from "../types/auth_type.js";
 
@@ -18,24 +18,35 @@ export async function comparePassword(password: string, hash: string): Promise<b
 export function generateToken(user: User): string {
   const payload: JwtPayload = {
     userId: user.id,
+    username: user.username,
     email: user.email,
   };
   return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
 }
 
 export async function register(
-  email: string,
+  username: string,
+  email: string | null,
   password: string
 ): Promise<{ user: User; token: string }> {
-  console.log(`[Auth Service] Starting registration for: ${email}`);
-  
-  console.log("[Auth Service] Checking if user exists...");
-  const existingUser = await findUserByEmail(email);
-  if (existingUser) {
-    console.log("[Auth Service] User already exists");
-    throw new Error("User already exists");
+  console.log(`[Auth Service] Starting registration for username: ${username}`);
+
+  console.log("[Auth Service] Checking if username exists...");
+  const existingUserByUsername = await findUserByUsername(username);
+  if (existingUserByUsername) {
+    console.log("[Auth Service] Username already exists");
+    throw new Error("Username already exists");
   }
-  console.log("[Auth Service] User does not exist, proceeding...");
+
+  // Check email only if provided
+  if (email) {
+    console.log("[Auth Service] Checking if email exists...");
+    const existingUserByEmail = await findUserByEmail(email);
+    if (existingUserByEmail) {
+      console.log("[Auth Service] Email already exists");
+      throw new Error("Email already exists");
+    }
+  }
 
   console.log("[Auth Service] Hashing password...");
   const passwordHash = await hashPassword(password);
@@ -43,8 +54,9 @@ export async function register(
 
   console.log("[Auth Service] Creating user in database...");
   const newUser = await createUser({
+    username,
     email,
-    provider: "email",
+    provider: email ? "email" : null,
     password_hash: passwordHash,
   });
   console.log("[Auth Service] User created:", newUser.id);
@@ -52,15 +64,21 @@ export async function register(
   console.log("[Auth Service] Generating token...");
   const token = generateToken(newUser);
   console.log("[Auth Service] Token generated successfully");
-  
+
   return { user: newUser, token };
 }
 
 export async function login(
-  email: string,
+  loginInput: string,
   password: string
 ): Promise<{ user: User; token: string }> {
-  const user = await findUserByEmail(email);
+  // Try to find user by username or email
+  let user = await findUserByUsername(loginInput);
+
+  if (!user) {
+    user = await findUserByEmail(loginInput);
+  }
+
   if (!user || !user.password_hash) {
     throw new Error("Invalid credentials");
   }
