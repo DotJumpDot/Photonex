@@ -1,16 +1,11 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
     <!-- Header -->
-    <header class="bg-white shadow">
+    <header class="bg-white dark:bg-gray-800 shadow">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900">
-          Photonex
-        </h1>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Photonex</h1>
         <div class="flex items-center gap-4">
-          <span
-            v-if="authStore.user"
-            class="text-sm text-gray-600"
-          >
+          <span v-if="authStore.user" class="text-sm text-gray-600 dark:text-gray-300">
             {{ authStore.user.email }}
           </span>
           <button
@@ -34,14 +29,9 @@
     <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Not Authenticated -->
-      <div
-        v-if="!authStore.isAuthenticated"
-        class="text-center py-16"
-      >
-        <h2 class="text-3xl font-bold text-gray-900 mb-4">
-          Monitor Your Packages
-        </h2>
-        <p class="text-lg text-gray-600 mb-8">
+      <div v-if="!authStore.isAuthenticated" class="text-center py-16">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Monitor Your Packages</h2>
+        <p class="text-lg text-gray-600 dark:text-gray-300 mb-8">
           Track NPM packages and VS Code Marketplace extensions in one place.
         </p>
         <NuxtLink
@@ -55,31 +45,24 @@
       <!-- Authenticated Dashboard -->
       <div v-else>
         <!-- Add Package Form -->
-        <div class="bg-white shadow rounded-lg p-6 mb-8">
-          <h2 class="text-lg font-semibold text-gray-900 mb-4">
+        <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-8">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Add Package/Extension
           </h2>
-          <form
-            class="flex gap-4"
-            @submit.prevent="handleAddPackage"
-          >
+          <form class="flex flex-col md:flex-row gap-4" @submit.prevent="handleAddPackage">
             <input
               v-model="newPackageUrl"
               type="text"
               placeholder="Enter NPM or VS Code Marketplace URL"
-              class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
               required
-            >
+            />
             <select
               v-model="newPackageType"
-              class="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             >
-              <option value="npm">
-                NPM Package
-              </option>
-              <option value="vscode">
-                VS Code Extension
-              </option>
+              <option value="npm">NPM Package</option>
+              <option value="vscode">VS Code Extension</option>
             </select>
             <button
               type="submit"
@@ -92,11 +75,13 @@
         </div>
 
         <!-- Controls -->
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-xl font-semibold text-gray-900">
+        <div
+          class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"
+        >
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
             Your Packages ({{ packageStore.totalPackages }})
           </h2>
-          <div class="flex gap-2">
+          <div class="flex flex-wrap gap-2">
             <button
               :disabled="packageStore.refreshing"
               class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
@@ -109,7 +94,7 @@
                 'px-4 py-2 text-sm font-medium rounded-md',
                 autoRefreshEnabled
                   ? 'bg-green-600 text-white hover:bg-green-700'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
+                  : 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600',
               ]"
               @click="toggleAutoRefresh"
             >
@@ -118,10 +103,18 @@
           </div>
         </div>
 
+        <!-- Refresh Message -->
+        <div
+          v-if="packageStore.lastRefreshMessage"
+          class="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-200 px-4 py-3 rounded mb-6"
+        >
+          {{ packageStore.lastRefreshMessage }}
+        </div>
+
         <!-- Error Message -->
         <div
           v-if="packageStore.error"
-          class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6"
+          class="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-6"
         >
           {{ packageStore.error }}
         </div>
@@ -131,30 +124,23 @@
           v-if="packageStore.loading && packageStore.packages.length === 0"
           class="text-center py-12"
         >
-          <p class="text-gray-600">
-            Loading packages...
-          </p>
+          <p class="text-gray-600 dark:text-gray-400">Loading packages...</p>
         </div>
 
         <!-- Empty State -->
-        <div
-          v-else-if="packageStore.packages.length === 0"
-          class="text-center py-12"
-        >
-          <p class="text-gray-600">
+        <div v-else-if="packageStore.packages.length === 0" class="text-center py-12">
+          <p class="text-gray-600 dark:text-gray-400">
             No packages added yet. Add your first package above!
           </p>
         </div>
 
         <!-- Packages Grid -->
-        <div
-          v-else
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <PackageCard
             v-for="pkg in packageStore.packages"
             :key="pkg.id"
             :package="pkg"
+            :refreshing="refreshingId === pkg.id"
             @refresh="handleRefreshPackage"
             @delete="handleDeletePackage"
           />
@@ -176,6 +162,7 @@ const packageStore = usePackageStore();
 const newPackageUrl = ref("");
 const newPackageType = ref<"npm" | "vscode">("npm");
 const autoRefreshEnabled = ref(false);
+const refreshingId = ref<string | null>(null);
 
 onMounted(async () => {
   await authStore.fetchUser();
@@ -204,10 +191,13 @@ async function handleAddPackage() {
 }
 
 async function handleRefreshPackage(id: string) {
+  refreshingId.value = id;
   try {
     await packageStore.refreshPackage(id);
   } catch (error) {
     console.error("Failed to refresh package:", error);
+  } finally {
+    refreshingId.value = null;
   }
 }
 

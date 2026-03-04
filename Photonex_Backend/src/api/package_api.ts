@@ -115,6 +115,7 @@ router.post(
       }
 
       const id = req.params.id as string;
+      const force = req.query.force === "true";
 
       // Get package details
       const packages = await packageService.getUserPackages(userId);
@@ -124,13 +125,19 @@ router.post(
         return res.status(404).json({ error: "Package not found" });
       }
 
-      await packageService.refreshPackageStats(id, pkg.type, pkg.name);
+      // Refresh stats with smart saving logic
+      const result = await packageService.refreshPackageStats(id, pkg.type, pkg.name, force);
 
       // Return updated package with stats
       const updatedPackages = await packageService.getUserPackagesWithStats(userId);
       const updatedPkg = updatedPackages.find((p) => p.id === id);
 
-      return res.json({ package: updatedPkg });
+      return res.json({
+        package: updatedPkg,
+        message: result.message,
+        refreshed: result.refreshed,
+        saved: result.saved,
+      });
     } catch (error) {
       console.error("Refresh package error:", error);
       return res.status(500).json({ error: "Internal server error" });
@@ -147,12 +154,19 @@ router.post("/refresh-all", authenticateToken, async (req: Request, res: Respons
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    const force = req.query.force === "true";
     const packages = await packageService.getUserPackages(userId);
 
     const results = await Promise.allSettled(
-      packages.map((pkg) => packageService.refreshPackageStats(pkg.id, pkg.type, pkg.name))
+      packages.map((pkg) => packageService.refreshPackageStats(pkg.id, pkg.type, pkg.name, force))
     );
 
+    const successful = results.filter(
+      (r) => r.status === "fulfilled" && (r.value as { refreshed: boolean }).refreshed
+    ).length;
+    const skipped = results.filter(
+      (r) => r.status === "fulfilled" && !(r.value as { refreshed: boolean }).refreshed
+    ).length;
     const failed = results.filter((r) => r.status === "rejected").length;
 
     // Return updated packages
@@ -160,7 +174,8 @@ router.post("/refresh-all", authenticateToken, async (req: Request, res: Respons
 
     return res.json({
       packages: updatedPackages,
-      refreshed: packages.length - failed,
+      refreshed: successful,
+      skipped,
       failed,
     });
   } catch (error) {

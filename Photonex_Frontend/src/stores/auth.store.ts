@@ -56,8 +56,9 @@ export const useAuthStore = defineStore("auth", () => {
 
       await setUser(userData, token);
       return userData;
-    } catch (err) {
-      error.value = "Authentication failed";
+    } catch (err: any) {
+      const errorData = err.response?.data;
+      error.value = errorData?.error?.message || "Authentication failed";
       throw err;
     } finally {
       loading.value = false;
@@ -68,12 +69,27 @@ export const useAuthStore = defineStore("auth", () => {
     loading.value = true;
     error.value = null;
     try {
-      const { user: userData, token } = await authService.login(loginInput, password);
+      const result = await authService.login(loginInput, password);
+
+      if (!result.success || !result.data) {
+        // Extract professional error message from backend
+        const errorMessage = result.error?.message || "Login failed";
+        throw new Error(errorMessage);
+      }
+
+      const { user: userData, token } = result.data;
       await setUser(userData, token);
       return userData;
     } catch (err: any) {
-      error.value = err.response?.data?.error || "Login failed";
-      throw err;
+      // Handle axios errors vs our custom errors
+      const errorData = err.response?.data;
+      const errorMessage =
+        errorData?.error?.message ||
+        err.message ||
+        "An unexpected error occurred. Please try again.";
+
+      error.value = errorMessage;
+      throw new Error(errorMessage, { cause: err });
     } finally {
       loading.value = false;
     }
@@ -83,12 +99,30 @@ export const useAuthStore = defineStore("auth", () => {
     loading.value = true;
     error.value = null;
     try {
-      const { user: userData, token } = await authService.register(username, email, password);
+      const result = await authService.register(username, email, password);
+
+      if (!result.success || !result.data) {
+        // Extract professional error message from backend
+        const errorMessage = result.error?.message || "Registration failed";
+        throw new Error(errorMessage);
+      }
+
+      const { user: userData, token } = result.data;
       await setUser(userData, token);
       return userData;
     } catch (err: any) {
-      error.value = err.response?.data?.error || "Registration failed";
-      throw err;
+      // Handle axios errors vs our custom errors
+      const errorData = err.response?.data;
+      const errorMessage =
+        errorData?.error?.message ||
+        (errorData?.error?.details
+          ? errorData.error.details.map((d: any) => `${d.field}: ${d.message}`).join(", ")
+          : null) ||
+        err.message ||
+        "An unexpected error occurred. Please try again.";
+
+      error.value = errorMessage;
+      throw new Error(errorMessage, { cause: err });
     } finally {
       loading.value = false;
     }

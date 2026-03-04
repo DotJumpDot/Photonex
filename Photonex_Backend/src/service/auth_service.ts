@@ -7,6 +7,39 @@ import { JwtPayload } from "../types/auth_type.js";
 const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS || "10", 10);
 const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 
+// Custom error classes for better error handling
+export class AuthError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public statusCode: number = 400
+  ) {
+    super(message);
+    this.name = "AuthError";
+  }
+}
+
+export class ValidationError extends AuthError {
+  constructor(message: string) {
+    super(message, "VALIDATION_ERROR", 400);
+    this.name = "ValidationError";
+  }
+}
+
+export class AuthenticationError extends AuthError {
+  constructor(message: string = "Authentication failed") {
+    super(message, "AUTHENTICATION_ERROR", 401);
+    this.name = "AuthenticationError";
+  }
+}
+
+export class ConflictError extends AuthError {
+  constructor(message: string) {
+    super(message, "CONFLICT_ERROR", 409);
+    this.name = "ConflictError";
+  }
+}
+
 export async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, SALT_ROUNDS);
 }
@@ -29,42 +62,49 @@ export async function register(
   email: string | null,
   password: string
 ): Promise<{ user: User; token: string }> {
-  console.log(`[Auth Service] Starting registration for username: ${username}`);
+  // Validate username
+  if (!username || username.trim().length < 3) {
+    throw new ValidationError("Username must be at least 3 characters long");
+  }
 
-  console.log("[Auth Service] Checking if username exists...");
+  if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+    throw new ValidationError("Username can only contain letters, numbers, and underscores");
+  }
+
+  // Validate password
+  if (!password || password.length < 4) {
+    throw new ValidationError("Password must be at least 4 characters long");
+  }
+
+  // Validate email if provided
+  if (email && !isValidEmail(email)) {
+    throw new ValidationError("Please provide a valid email address");
+  }
+
+  // Check if username exists
   const existingUserByUsername = await findUserByUsername(username);
   if (existingUserByUsername) {
-    console.log("[Auth Service] Username already exists");
-    throw new Error("Username already exists");
+    throw new ConflictError("This username is already taken. Please choose a different one.");
   }
 
   // Check email only if provided
   if (email) {
-    console.log("[Auth Service] Checking if email exists...");
     const existingUserByEmail = await findUserByEmail(email);
     if (existingUserByEmail) {
-      console.log("[Auth Service] Email already exists");
-      throw new Error("Email already exists");
+      throw new ConflictError("An account with this email already exists.");
     }
   }
 
-  console.log("[Auth Service] Hashing password...");
+  // Hash password and create user
   const passwordHash = await hashPassword(password);
-  console.log("[Auth Service] Password hashed successfully");
-
-  console.log("[Auth Service] Creating user in database...");
   const newUser = await createUser({
-    username,
-    email,
+    username: username.trim(),
+    email: email ? email.toLowerCase().trim() : null,
     provider: email ? "email" : null,
     password_hash: passwordHash,
   });
-  console.log("[Auth Service] User created:", newUser.id);
 
-  console.log("[Auth Service] Generating token...");
   const token = generateToken(newUser);
-  console.log("[Auth Service] Token generated successfully");
-
   return { user: newUser, token };
 }
 
@@ -72,22 +112,45 @@ export async function login(
   loginInput: string,
   password: string
 ): Promise<{ user: User; token: string }> {
+  // Validate input
+  if (!loginInput || !loginInput.trim()) {
+    throw new ValidationError("Please enter your username or email");
+  }
+
+  if (!password) {
+    throw new ValidationError("Please enter your password");
+  }
+
   // Try to find user by username or email
-  let user = await findUserByUsername(loginInput);
+  const normalizedInput = loginInput.trim();
+  let user = await findUserByUsername(normalizedInput);
 
   if (!user) {
-    user = await findUserByEmail(loginInput);
+    user = await findUserByEmail(normalizedInput.toLowerCase());
   }
 
-  if (!user || !user.password_hash) {
-    throw new Error("Invalid credentials");
+  // Check if user exists and has password (not OAuth-only)
+  if (!user) {
+    throw new AuthenticationError("We couldn't find an account with those credentials.");
   }
 
+  if (!user.password_hash) {
+    throw new AuthenticationError(
+      "This account was created with a social login. Please use Google or GitHub to sign in."
+    );
+  }
+
+  // Verify password
   const isPasswordValid = await comparePassword(password, user.password_hash);
   if (!isPasswordValid) {
-    throw new Error("Invalid credentials");
+    throw new AuthenticationError("The password you entered is incorrect.");
   }
 
   const token = generateToken(user);
   return { user, token };
+}
+
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }

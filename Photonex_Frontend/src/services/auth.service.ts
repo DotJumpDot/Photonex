@@ -1,17 +1,34 @@
 import type { User, AuthCallbackInput } from "../Types";
 
+export interface AuthResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: {
+    code: string;
+    message: string;
+    type: string;
+    details?: Array<{ field: string; message: string }>;
+  };
+  message?: string;
+}
+
+export interface AuthData {
+  user: User;
+  token: string;
+}
+
 function getHttp() {
   const nuxtApp = useNuxtApp();
   return nuxtApp.$http;
 }
 
 export const authService = {
-  async callback(input: AuthCallbackInput): Promise<{ user: User; token: string }> {
+  async callback(input: AuthCallbackInput): Promise<AuthData> {
     const response = await getHttp().post("/auth/callback", input);
     return response.data;
   },
 
-  async login(loginInput: string, password: string): Promise<{ user: User; token: string }> {
+  async login(loginInput: string, password: string): Promise<AuthResponse<AuthData>> {
     const response = await getHttp().post("/auth/login", { loginInput, password });
     return response.data;
   },
@@ -20,7 +37,7 @@ export const authService = {
     username: string,
     email: string | null,
     password: string
-  ): Promise<{ user: User; token: string }> {
+  ): Promise<AuthResponse<AuthData>> {
     const response = await getHttp().post("/auth/register", { username, email, password });
     return response.data;
   },

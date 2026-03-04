@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { packageService } from "../services/package.service";
-import type { PackageWithStats, CreatePackageInput } from "../Types";
+import type { PackageWithStats, CreatePackageInput, RefreshResponse } from "../Types";
 
 export const usePackageStore = defineStore("package", () => {
   // State
@@ -10,6 +10,7 @@ export const usePackageStore = defineStore("package", () => {
   const refreshing = ref(false);
   const error = ref<string | null>(null);
   const autoRefreshInterval = ref<number | null>(null);
+  const lastRefreshMessage = ref<string | null>(null);
 
   // Getters
   const npmPackages = computed(() => packages.value.filter((p) => p.type === "npm"));
@@ -22,8 +23,8 @@ export const usePackageStore = defineStore("package", () => {
     error.value = null;
 
     try {
-      const { packages: data } = await packageService.getPackages();
-      packages.value = data;
+      const response = await packageService.getPackages();
+      packages.value = response.packages;
     } catch (_err) {
       error.value = "Failed to fetch packages";
     } finally {
@@ -36,9 +37,9 @@ export const usePackageStore = defineStore("package", () => {
     error.value = null;
 
     try {
-      const { package: newPackage } = await packageService.addPackage(input);
-      await fetchPackages(); // Refresh to get stats
-      return newPackage;
+      const response = await packageService.addPackage(input);
+      await fetchPackages();
+      return response.package;
     } catch (err) {
       error.value = "Failed to add package";
       throw err;
@@ -62,17 +63,26 @@ export const usePackageStore = defineStore("package", () => {
     }
   }
 
-  async function refreshPackage(id: string) {
+  async function refreshPackage(id: string, force: boolean = false): Promise<RefreshResponse> {
     refreshing.value = true;
     error.value = null;
+    lastRefreshMessage.value = null;
 
     try {
-      const { package: updatedPackage } = await packageService.refreshPackage(id);
-      const index = packages.value.findIndex((p) => p.id === id);
-      if (index !== -1) {
-        packages.value[index] = updatedPackage;
+      const result = await packageService.refreshPackage(id, force);
+      const idx = packages.value.findIndex((p) => p.id === id);
+      if (idx !== -1) {
+        packages.value[idx] = result.package;
       }
-    } catch (err) {
+      // Show appropriate message based on whether data was saved
+      if (result.saved) {
+        lastRefreshMessage.value = "Stats updated successfully";
+      } else if (result.refreshed) {
+        // Data was fetched but not saved (cooldown or no changes)
+        lastRefreshMessage.value = result.message;
+      }
+      return result;
+    } catch (err: any) {
       error.value = "Failed to refresh package";
       throw err;
     } finally {
@@ -80,14 +90,18 @@ export const usePackageStore = defineStore("package", () => {
     }
   }
 
-  async function refreshAllPackages() {
+  async function refreshAllPackages(force: boolean = false) {
     refreshing.value = true;
     error.value = null;
+    lastRefreshMessage.value = null;
 
     try {
-      const { packages: data, refreshed, failed } = await packageService.refreshAllPackages();
-      packages.value = data;
-      return { refreshed, failed };
+      const result = await packageService.refreshAllPackages(force);
+      packages.value = result.packages;
+      if (result.skipped > 0) {
+        lastRefreshMessage.value = `${result.refreshed} refreshed, ${result.skipped} skipped (rate limited), ${result.failed} failed`;
+      }
+      return result;
     } catch (err) {
       error.value = "Failed to refresh all packages";
       throw err;
@@ -101,7 +115,7 @@ export const usePackageStore = defineStore("package", () => {
 
     const intervalMs = intervalMinutes * 60 * 1000;
     autoRefreshInterval.value = window.setInterval(() => {
-      refreshAllPackages();
+      refreshAllPackages(false);
     }, intervalMs);
   }
 
@@ -117,6 +131,7 @@ export const usePackageStore = defineStore("package", () => {
     loading,
     refreshing,
     error,
+    lastRefreshMessage,
     npmPackages,
     vscodeExtensions,
     totalPackages,

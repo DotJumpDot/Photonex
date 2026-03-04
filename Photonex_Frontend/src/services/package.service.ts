@@ -1,4 +1,10 @@
-import type { Package, PackageWithStats, CreatePackageInput } from "../Types";
+import type {
+  Package,
+  PackageWithStats,
+  CreatePackageInput,
+  RefreshResponse,
+  RefreshAllResponse,
+} from "../Types";
 
 function getHttp() {
   const nuxtApp = useNuxtApp();
@@ -21,17 +27,25 @@ export const packageService = {
     return response.data;
   },
 
-  async refreshPackage(id: string): Promise<{ package: PackageWithStats }> {
-    const response = await getHttp().post(`/packages/${id}/refresh`);
+  async refreshPackage(id: string, force: boolean = false): Promise<RefreshResponse> {
+    const response = await getHttp().post(
+      `/packages/${id}/refresh`,
+      {},
+      {
+        params: { force },
+      }
+    );
     return response.data;
   },
 
-  async refreshAllPackages(): Promise<{
-    packages: PackageWithStats[];
-    refreshed: number;
-    failed: number;
-  }> {
-    const response = await getHttp().post("/packages/refresh-all");
+  async refreshAllPackages(force: boolean = false): Promise<RefreshAllResponse> {
+    const response = await getHttp().post(
+      "/packages/refresh-all",
+      {},
+      {
+        params: { force },
+      }
+    );
     return response.data;
   },
 };
