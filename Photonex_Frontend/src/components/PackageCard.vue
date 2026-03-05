@@ -36,7 +36,7 @@
 
         <!-- Author & License -->
         <div class="mt-2 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-          <span v-if="package.author"> By {{ package.author }} </span>
+          <span v-if="package.author"> {{ $t("by") }} {{ package.author }} </span>
           <span v-if="package.license" class="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
             {{ package.license }}
           </span>
@@ -72,7 +72,7 @@
                 d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
               />
             </svg>
-            Package
+            {{ $t("package") }}
           </a>
           <a
             v-if="package.homepage"
@@ -128,7 +128,7 @@
       </div>
       <button
         class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 ml-2"
-        title="Delete"
+        :title="$t('delete')"
         @click="$emit('delete', package.id)"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +151,7 @@
             <p
               class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 truncate"
             >
-              Weekly DLs
+              {{ $t("weekly_dls") }}
             </p>
             <p class="text-base font-bold text-gray-900 dark:text-white truncate">
               {{ formatNumber(latestStats.downloads || 0) }}
@@ -161,7 +161,7 @@
             <p
               class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 truncate"
             >
-              Total DLs
+              {{ $t("total_dls") }}
             </p>
             <p class="text-base font-bold text-gray-900 dark:text-white truncate">
               {{ formatNumber(latestStats.total_downloads || 0) }}
@@ -171,7 +171,7 @@
             <p
               class="text-[10px] uppercase tracking-wide text-gray-500 dark:text-gray-400 truncate"
             >
-              Versions
+              {{ $t("versions") }}
             </p>
             <p class="text-base font-bold text-gray-900 dark:text-white truncate">
               {{ latestStats.version_count || 0 }}
@@ -254,7 +254,7 @@
             class="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded"
             v-if="latestStats.trending_daily"
           >
-            <p class="text-xs text-gray-500 dark:text-gray-400">Trending Daily</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">{{ $t("trending_daily") }}</p>
             <p class="text-lg font-bold text-green-600 dark:text-green-400">
               +{{ latestStats.trending_daily.toFixed(1) }}%
             </p>
@@ -263,13 +263,13 @@
       </div>
 
       <div v-else class="text-center py-4">
-        <p class="text-gray-500 dark:text-gray-400">No stats available</p>
+        <p class="text-gray-500 dark:text-gray-400">{{ $t("no_stats") }}</p>
       </div>
 
       <!-- Last Updated -->
       <div v-if="latestStats" class="mt-4 text-center">
         <p class="text-xs text-gray-500 dark:text-gray-400">
-          Last updated: {{ formatDate(latestStats.recorded_at) }}
+          {{ $t("last_updated") }}: {{ formatDate(latestStats.recorded_at) }}
         </p>
       </div>
     </div>
@@ -292,7 +292,7 @@
           @click="showVersions = !showVersions"
           class="w-full px-6 py-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
         >
-          <span>Version History ({{ package.package_versions.length }})</span>
+          <span>{{ $t("version_history") }} ({{ package.package_versions.length }})</span>
           <svg
             class="w-4 h-4 transition-transform"
             :class="{ 'rotate-180': showVersions }"
@@ -316,14 +316,14 @@
           >
             <span class="font-mono text-gray-700 dark:text-gray-300">{{ version.version }}</span>
             <span class="text-xs text-gray-500 dark:text-gray-400">
-              {{ version.published_at ? formatDate(version.published_at) : "Unknown date" }}
+              {{ version.published_at ? formatDate(version.published_at) : $t("unknown_date") }}
             </span>
           </div>
           <div
             v-if="package.package_versions.length > 10"
             class="text-center text-xs text-gray-400 py-1"
           >
-            +{{ package.package_versions.length - 10 }} more versions
+            +{{ package.package_versions.length - 10 }} {{ $t("more_versions") }}
           </div>
         </div>
       </div>
@@ -339,9 +339,9 @@
         class="w-full px-6 py-2 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
       >
         <span>
-          Dependencies
+          {{ $t("dependencies") }}
           <span class="text-xs text-gray-400">
-            ({{ regularDeps.length }} deps, {{ devDeps.length }} devDeps)
+            ({{ regularDeps.length }} {{ $t("deps") }}, {{ devDeps.length }} {{ $t("devdeps") }})
           </span>
         </span>
         <svg
@@ -362,7 +362,9 @@
       <div v-if="showDependencies" class="px-6 py-2 max-h-48 overflow-y-auto">
         <!-- Regular Dependencies -->
         <div v-if="regularDeps.length" class="mb-2">
-          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Dependencies</p>
+          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
+            {{ $t("dependencies") }}
+          </p>
           <div class="flex flex-wrap gap-1">
             <span
               v-for="dep in regularDeps.slice(0, 15)"
@@ -375,14 +377,14 @@
               }}</span>
             </span>
             <span v-if="regularDeps.length > 15" class="text-xs text-gray-400">
-              +{{ regularDeps.length - 15 }} more
+              +{{ regularDeps.length - 15 }} {{ $t("more") }}
             </span>
           </div>
         </div>
         <!-- Dev Dependencies -->
         <div v-if="devDeps.length">
           <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">
-            Dev Dependencies
+            {{ $t("dev_dependencies") }}
           </p>
           <div class="flex flex-wrap gap-1">
             <span
@@ -393,7 +395,7 @@
               {{ dep.dependency_name }}
             </span>
             <span v-if="devDeps.length > 10" class="text-xs text-gray-400">
-              +{{ devDeps.length - 10 }} more
+              +{{ devDeps.length - 10 }} {{ $t("more") }}
             </span>
           </div>
         </div>
@@ -405,7 +407,7 @@
       class="px-6 py-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 flex justify-between items-center mt-auto"
     >
       <span class="text-xs text-gray-500 dark:text-gray-400">
-        Added {{ formatDate(package.created_at) }}
+        {{ $t("added") }} {{ formatDate(package.created_at) }}
       </span>
       <button
         class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium flex items-center gap-1"
@@ -435,7 +437,7 @@
             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
           />
         </svg>
-        Refresh
+        {{ $t("refresh") }}
       </button>
     </div>
   </div>

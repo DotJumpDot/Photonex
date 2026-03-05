@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
+import { computed } from "vue";
 
 type LocaleCode = "en" | "th";
 
@@ -10,42 +11,32 @@ const availableLocales: { code: LocaleCode; name: string }[] = [
   { code: "th", name: "ไทย" },
 ];
 
-function switchLanguage(code: LocaleCode) {
-  setLocale(code);
+const currentLanguageLabel = computed(() => {
+  return availableLocales.find((lang) => lang.code === locale.value)?.name || "English";
+});
+
+function handleLanguageChange(event: Event) {
+  const target = event.target as HTMLSelectElement;
+  setLocale(target.value as LocaleCode);
 }
 </script>
 
 <template>
   <div class="language-switcher">
-    <button
-      v-for="lang in availableLocales"
-      :key="lang.code"
-      :class="{ active: locale === lang.code }"
-      @click="switchLanguage(lang.code)"
+    <select
+      :value="locale"
+      @change="handleLanguageChange"
+      class="px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white cursor-pointer"
     >
-      {{ lang.name }}
-    </button>
+      <option v-for="lang in availableLocales" :key="lang.code" :value="lang.code">
+        {{ lang.name }}
+      </option>
+    </select>
   </div>
 </template>
 
 <style scoped>
-.language-switcher {
-  display: flex;
-  gap: 0.5rem;
-}
-
-button {
-  padding: 0.5rem 1rem;
-  border: 1px solid var(--border-color, #ccc);
-  background: var(--bg-color, #fff);
-  color: var(--text-color, #333);
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-button.active {
-  background: var(--primary-color, #3b82f6);
-  color: white;
-  border-color: var(--primary-color, #3b82f6);
+.language-switcher select {
+  min-width: 100px;
 }
 </style>

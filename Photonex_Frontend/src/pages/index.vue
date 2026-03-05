@@ -1,11 +1,13 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <div class="min-h-screen themed-page">
     <!-- Header -->
-    <header class="bg-white dark:bg-gray-800 shadow">
+    <header class="themed-header shadow">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Photonex</h1>
+        <h1 class="text-2xl font-bold themed-text">Photonex</h1>
         <div class="flex items-center gap-4">
-          <span v-if="authStore.user" class="text-sm text-gray-600 dark:text-gray-300">
+          <ThemeSelector />
+          <LanguageSwitcher />
+          <span v-if="authStore.user" class="text-sm themed-text">
             {{ authStore.user.email }}
           </span>
           <button
@@ -13,14 +15,14 @@
             class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
             @click="logout"
           >
-            Logout
+            {{ $t("logout") }}
           </button>
           <NuxtLink
             v-else
             to="/login"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
           >
-            Login
+            {{ $t("login") }}
           </NuxtLink>
         </div>
       </div>
@@ -30,15 +32,17 @@
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <!-- Not Authenticated -->
       <div v-if="!authStore.isAuthenticated" class="text-center py-16">
-        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">Monitor Your Packages</h2>
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          {{ $t("monitor_packages") }}
+        </h2>
         <p class="text-lg text-gray-600 dark:text-gray-300 mb-8">
-          Track NPM packages and VS Code Marketplace extensions in one place.
+          {{ $t("track_packages_desc") }}
         </p>
         <NuxtLink
           to="/login"
           class="inline-block px-6 py-3 text-lg font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
         >
-          Get Started
+          {{ $t("get_started") }}
         </NuxtLink>
       </div>
 
@@ -47,13 +51,13 @@
         <!-- Add Package Form -->
         <div class="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-8">
           <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Add Package/Extension
+            {{ $t("add_package") }}
           </h2>
           <form class="flex flex-col md:flex-row gap-4" @submit.prevent="handleAddPackage">
             <input
               v-model="newPackageUrl"
               type="text"
-              placeholder="Enter NPM or VS Code Marketplace URL"
+              :placeholder="$t('enter_url')"
               class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
               required
             />
@@ -61,15 +65,15 @@
               v-model="newPackageType"
               class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             >
-              <option value="npm">NPM Package</option>
-              <option value="vscode">VS Code Extension</option>
+              <option value="npm">{{ $t("npm_package") }}</option>
+              <option value="vscode">{{ $t("vscode_extension") }}</option>
             </select>
             <button
               type="submit"
               :disabled="packageStore.loading"
               class="px-6 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
             >
-              {{ packageStore.loading ? "Adding..." : "Add" }}
+              {{ packageStore.loading ? $t("adding") : $t("add") }}
             </button>
           </form>
         </div>
@@ -79,7 +83,7 @@
           class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"
         >
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-            Your Packages ({{ packageStore.totalPackages }})
+            {{ $t("your_packages") }} ({{ packageStore.totalPackages }})
           </h2>
           <div class="flex flex-wrap gap-2">
             <button
@@ -87,7 +91,7 @@
               class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
               @click="handleRefreshAll"
             >
-              {{ packageStore.refreshing ? "Refreshing..." : "Refresh All" }}
+              {{ packageStore.refreshing ? $t("refreshing") : $t("refresh_all") }}
             </button>
             <button
               :class="[
@@ -98,7 +102,7 @@
               ]"
               @click="toggleAutoRefresh"
             >
-              {{ autoRefreshEnabled ? "Auto: ON" : "Auto: OFF" }}
+              {{ autoRefreshEnabled ? $t("auto_on") : $t("auto_off") }}
             </button>
           </div>
         </div>
@@ -124,13 +128,13 @@
           v-if="packageStore.loading && packageStore.packages.length === 0"
           class="text-center py-12"
         >
-          <p class="text-gray-600 dark:text-gray-400">Loading packages...</p>
+          <p class="text-gray-600 dark:text-gray-400">{{ $t("loading_packages") }}</p>
         </div>
 
         <!-- Empty State -->
         <div v-else-if="packageStore.packages.length === 0" class="text-center py-12">
           <p class="text-gray-600 dark:text-gray-400">
-            No packages added yet. Add your first package above!
+            {{ $t("no_packages") }}
           </p>
         </div>
 
@@ -152,12 +156,17 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useAuthStore } from "../stores/auth.store";
 import { usePackageStore } from "../stores/package.store";
+import { useThemeStore } from "../stores/theme.store";
 import PackageCard from "../components/PackageCard.vue";
+import LanguageSwitcher from "../components/LanguageSwitcher.vue";
+import ThemeSelector from "../components/ThemeSelector.vue";
 
 const authStore = useAuthStore();
 const packageStore = usePackageStore();
+const themeStore = useThemeStore();
 
 const newPackageUrl = ref("");
 const newPackageType = ref<"npm" | "vscode">("npm");
@@ -165,6 +174,7 @@ const autoRefreshEnabled = ref(false);
 const refreshingId = ref<string | null>(null);
 
 onMounted(async () => {
+  themeStore.initTheme();
   await authStore.fetchUser();
   if (authStore.isAuthenticated) {
     await packageStore.fetchPackages();
@@ -202,7 +212,8 @@ async function handleRefreshPackage(id: string) {
 }
 
 async function handleDeletePackage(id: string) {
-  if (!confirm("Are you sure you want to delete this package?")) return;
+  const { t } = useI18n();
+  if (!confirm(t("delete_confirm"))) return;
 
   try {
     await packageStore.deletePackage(id);
@@ -234,3 +245,24 @@ function logout() {
   packageStore.stopAutoRefresh();
 }
 </script>
+
+<style>
+.themed-page {
+  background-color: var(--bg-color, #f9fafb) !important;
+  color: var(--text-color, #111827) !important;
+}
+
+.themed-header {
+  background-color: var(--bg-color, #ffffff) !important;
+  border-bottom: 1px solid var(--border-color, #e5e7eb) !important;
+}
+
+.themed-text {
+  color: var(--text-color, #111827) !important;
+}
+
+.themed-card {
+  background-color: var(--bg-color, #ffffff) !important;
+  border: 1px solid var(--border-color, #e5e7eb) !important;
+}
+</style>
